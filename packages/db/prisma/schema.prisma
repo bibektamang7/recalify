@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  videos    Video[]
+  questions Question[]
+  createdAt DateTime @default(now())
+}
+
+model Video {
+  id          String      @id @default(uuid())
+  title       String
+  url         String      @unique 
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  transcripts Transcript[]
+  summaries   Summary[]
+  createdAt   DateTime    @default(now())
+
+  Question Question[]
+}
+
+model Transcript {
+  id        String   @id @default(uuid())
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id])
+  text      String
+  startTime Float    
+  endTime   Float    
+  embedding Float[] 
+  
+}
+
+
+
+model Summary {
+  id        String   @id @default(uuid())
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id])
+  summary   String   
+  type      String   
+  createdAt DateTime @default(now())
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id])
+  question  String
+  answer    String?  
+  askedAt   DateTime @default(now())
+}
+
+// model Embedding {
+//   id          String    @id @default(uuid())
+//   videoId     String
+//   video       Video     @relation(fields: [videoId], references: [id])
+//   transcriptId String
+//   transcript  Transcript @relation(fields: [transcriptId], references: [id])
+//   vector      Float[]   
+// }
