@@ -18,6 +18,6 @@ interface VideoSummaryProps {
 	video: string
 }
 
-const addVideoSummary = (data: VideoSummaryProps) => {
+export const addVideoSummary = (data: VideoSummaryProps) => {
 	summaryQueue.add("videoSummary", data);
 };
