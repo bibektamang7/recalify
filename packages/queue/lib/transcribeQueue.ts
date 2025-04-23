@@ -14,7 +14,9 @@ export const transcribeQueue = new Queue("transcribe", {
 	}
 });
 
-interface AddTranscribeProps {}
+interface AddTranscribeProps {
+	videoId: string
+}
 
 export const addVideoTranscribe = async (data: AddTranscribeProps) => {
 	await transcribeQueue.add("videoTranscribe", data);
