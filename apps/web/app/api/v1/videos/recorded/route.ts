@@ -1,5 +1,6 @@
 import { prismaClient } from "db";
 import { NextRequest, NextResponse } from "next/server";
+import { addVideoTranscribe } from "queue";
 import { VideoRecordedSchema } from "validation";
 
 export async function POST(req: NextRequest) {
@@ -20,6 +21,10 @@ export async function POST(req: NextRequest) {
 			data: {
 				url: parsedData.data.videoUrl,
 			},
+		});
+		await addVideoTranscribe({
+			videoUrl: parsedData.data.videoUrl,
+			videoId: parsedData.data.videoId,
 		});
 		return NextResponse.json(
 			{ success: true, message: "Recorded" },

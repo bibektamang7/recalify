@@ -9,6 +9,45 @@ const result = NextAuth({
 	session: {
 		strategy: "jwt",
 	},
+	callbacks: {
+		async signIn({ account, profile }) {
+			if (account?.provider === "google") {
+				if (!profile?.email) return false;
+				try {
+					const createdUser = await prismaClient.user.findUnique({
+						where: {
+							email: profile.email,
+						},
+					});
+					if (!createdUser) {
+						await prismaClient.user.create({
+							data: {
+								email: profile.email,
+								name: profile.name!,
+								profile: profile.picture,
+							},
+						});
+					}
+				} catch (error: any) {
+					console.log(error);
+					return false;
+				}
+			}
+			return true;
+		},
+		async jwt({ token, user, account, profile }) {
+			if (account && profile) {
+				token.picture = profile.picture;
+			}
+			return token;
+		},
+		async session({ session, token }) {
+			if (session.user) {
+				session.user.image = token.picture as string;
+			}
+			return session;
+		},
+	},
 });
 
 const handlers: NextAuthResult["handlers"] = result.handlers;

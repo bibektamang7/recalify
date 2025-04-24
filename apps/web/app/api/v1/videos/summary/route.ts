@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
 
 		if (!summary) {
 			//TODO: create summary
+			// call llm here directly, but still not sure about it
 		}
 
 		return NextResponse.json(

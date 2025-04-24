@@ -17,25 +17,27 @@ model User {
 }
 
 model Video {
-  id          String       @id @default(uuid())
-  title       String
-  url         String       @unique
-  userId      String
-  user        User         @relation(fields: [userId], references: [id])
-  transcripts Transcript[]
-  summaries   Summary[]
-  createdAt   DateTime     @default(now())
-  Question    Question[]
+  id            String       @id @default(uuid())
+  title         String
+  url           String?      @unique
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  isTranscribed Boolean      @default(false)
+  transcripts   Transcript[]
+  summaries     Summary[]
+  createdAt     DateTime     @default(now())
+  Question      Question[]
+  isFavourite   Boolean      @default(false)
 }
 
 model Transcript {
-  id        String  @id @default(uuid())
+  id        String                     @id @default(uuid())
   videoId   String
-  video     Video   @relation(fields: [videoId], references: [id])
+  video     Video                      @relation(fields: [videoId], references: [id])
   text      String
   startTime Float
   endTime   Float
-  embedding Float[]
+  embedding Unsupported("vector(768)")
 }
 
 enum SummaryType {
