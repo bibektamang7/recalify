@@ -10,12 +10,13 @@ export const transcribeQueue = new Queue("transcribe", {
 			delay: 2000,
 		},
 		removeOnComplete: true,
-		removeOnFail: false
-	}
+		removeOnFail: false,
+	},
 });
 
 interface AddTranscribeProps {
-	videoId: string
+	videoId: string;
+	videoUrl: string;
 }
 
 export const addVideoTranscribe = async (data: AddTranscribeProps) => {

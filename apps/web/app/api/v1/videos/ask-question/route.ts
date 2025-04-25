@@ -2,6 +2,7 @@ import { getAuthUser } from "@/lib/verifyUser";
 import { prismaClient } from "db";
 import { NextRequest, NextResponse } from "next/server";
 import { AskQuestionSchema } from "validation";
+import axios from "axios"
 
 export async function POST(req: NextRequest) {
 	const user = await getAuthUser();
@@ -35,6 +36,10 @@ export async function POST(req: NextRequest) {
 		}
 
 		// TODO: streaming answer
+		const response = await axios.post("http://localhost:11434/api/chat", {
+			model: "mistral",
+			prompt: "Hey there, how are you",
+		});
 
 		return NextResponse.json({ success: true }, { status: 200 });
 	} catch (error: any) {

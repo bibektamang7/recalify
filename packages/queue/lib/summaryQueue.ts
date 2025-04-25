@@ -15,9 +15,10 @@ const summaryQueue = new Queue("summary", {
 });
 
 interface VideoSummaryProps {
-	video: string
+	videoId: string;
+	summaryType: string
 }
 
-export const addVideoSummary = (data: VideoSummaryProps) => {
-	summaryQueue.add("videoSummary", data);
+export const addVideoSummary = async (data: VideoSummaryProps) => {
+	await summaryQueue.add("videoSummary", data);
 };

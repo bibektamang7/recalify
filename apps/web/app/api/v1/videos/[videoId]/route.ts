@@ -19,6 +19,11 @@ export async function GET(
 			where: {
 				id: videoId,
 			},
+			include: {
+				transcripts: true,
+				summaries: true,
+				Question: true,
+			}
 		});
 
 		if (!video) {

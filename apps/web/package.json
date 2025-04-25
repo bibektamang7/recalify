@@ -13,14 +13,15 @@
 	"dependencies": {
 		"@auth/prisma-adapter": "^2.9.0",
 		"@repo/ui": "*",
+		"axios": "^1.8.4",
 		"db": "*",
 		"next": "^15.3.0",
 		"next-auth": "^5.0.0-beta.26",
+		"queue": "*",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
-		"worker": "*",
 		"validation": "*",
-		"queue": "*"
+		"worker": "*"
 	},
 	"devDependencies": {
 		"@repo/eslint-config": "*",

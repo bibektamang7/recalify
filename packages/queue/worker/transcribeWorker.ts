@@ -17,7 +17,7 @@ export const transcribeWorker = new Worker(
 		const jobData = job.data;
 		const url = "http://localhost:8000/transcribe/";
 		try {
-			const response = await axios.post(`${url}`, { url: jobData.url });
+			const response = await axios.post(`${url}`, { url: jobData.videoUrl });
 			await prismaClient.$transaction(
 				response.data.segments.map(async (segment: SegmentProps) => {
 					const embeddingResponse = await axios.post(

@@ -31,13 +31,14 @@ model Video {
 }
 
 model Transcript {
-  id        String                     @id @default(uuid())
+  id        String  @id @default(uuid())
   videoId   String
-  video     Video                      @relation(fields: [videoId], references: [id])
+  video     Video   @relation(fields: [videoId], references: [id])
   text      String
   startTime Float
   endTime   Float
-  embedding Unsupported("vector(768)")
+  // embedding Unsupported("vector(768)")
+  embedding Float[] //For now
 }
 
 enum SummaryType {

@@ -6,7 +6,7 @@ import axios from "axios";
 const summaryWorker = new Worker(
 	"summary",
 	async (job) => {
-		const { videoId } = job.data;
+		const { videoId, summaryType } = job.data;
 		try {
 			// TODO: no sure response structure
 			const response = await axios.post("http://localhost:11434/api/generate", {

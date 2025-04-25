@@ -11,13 +11,7 @@ export const VideoRecordedSchema = z.object({
 });
 
 export const VideoTranscribedSchema = z.object({
-	transcribes: z.array(
-		z.object({
-			text: z.string(),
-			start: z.number(),
-			end: z.string(),
-		})
-	),
+	videoUrl: z.string(),
 	vidoeId: z.string(),
 });
 
