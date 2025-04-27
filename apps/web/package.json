@@ -14,6 +14,7 @@
 		"@auth/prisma-adapter": "^2.9.0",
 		"@repo/ui": "*",
 		"@trpc/client": "^11.1.1",
+		"@trpc/next": "^11.1.1",
 		"@trpc/server": "^11.1.1",
 		"axios": "^1.8.4",
 		"db": "*",
@@ -24,7 +25,6 @@
 		"react-dom": "^19.1.0",
 		"selenium-webdriver": "^4.31.0",
 		"validation": "*",
-		"worker": "*",
 		"zod": "^3.24.3"
 	},
 	"devDependencies": {

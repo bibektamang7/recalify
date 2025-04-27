@@ -1,9 +1,4 @@
-import { publicProcedure, router } from "./trpc";
+export const config = {
+	runtime: "nodejs"
+}
 
-const appRouter = router({
-	uploadChunk: publicProcedure.query(async () => {
-
-	})
-});
-
-export type AppRouter = typeof appRouter;

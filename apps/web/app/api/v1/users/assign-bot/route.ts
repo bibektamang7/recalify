@@ -1,10 +1,8 @@
 import { auth } from "@/lib/auth";
 import { getAuthUser } from "@/lib/verifyUser";
 import { prismaClient } from "db";
-import { tree } from "next/dist/build/templates/app-page";
 import { NextRequest, NextResponse } from "next/server";
 import { AssignBotSchema } from "validation";
-import { botWorker } from "worker";
 
 export async function POST(req: NextRequest) {
 	const user = await getAuthUser();
@@ -34,7 +32,7 @@ export async function POST(req: NextRequest) {
 		// use bullMQ here for asynchronous bot assigning
 
 		return NextResponse.json(
-			{ success: tree, message: "Bot Assigned" },
+			{ success: true, message: "Bot Assigned" },
 			{ status: 200 }
 		);
 	} catch (error) {}
