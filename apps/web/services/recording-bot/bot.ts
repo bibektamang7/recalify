@@ -1,5 +1,6 @@
 import { Builder, Browser, By, until, WebDriver } from "selenium-webdriver";
 import { Options } from "selenium-webdriver/chrome";
+import {trpc} from "@/lib/trpcClient"
 
 async function OpenBrowser(driver: WebDriver, url: string) {
 	try {
@@ -151,6 +152,8 @@ async function main(url: string) {
 	await new Promise((x) => setTimeout(x, 20000));
 	await startScreenRecording(driver);
 }
+
+main("https://meet.google.com/zwb-wxor-gzt?pli=1")
 
 export { main as botWorker };
 
