@@ -1,11 +1,20 @@
 import { Builder, Browser, By, until, WebDriver } from "selenium-webdriver";
 import { Options } from "selenium-webdriver/chrome";
-import {trpc} from "@/lib/trpcClient"
+import { trpc } from "@/lib/trpcClient";
 
 async function OpenBrowser(driver: WebDriver, url: string) {
 	try {
 		await driver.get(url);
+		await driver.executeScript(
+			"Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+		);
 
+		const actions = driver.actions({ async: true });
+		const wait = (ms: number) =>
+			new Promise((resolve) => setTimeout(resolve, ms));
+
+		await driver.executeScript("window.scrollBy(0, 100)");
+		await wait(2000);
 		const gotItButton = await driver.wait(
 			until.elementLocated(By.xpath("//span[text()='Got it']")),
 			10000
@@ -16,30 +25,43 @@ async function OpenBrowser(driver: WebDriver, url: string) {
 			until.elementLocated(By.xpath("//input[@placeholder='Your name']")),
 			10000
 		);
-		await InputText.click();
-		await InputText.sendKeys("value", "Bibek Tamang bot");
+		await wait(2000);
+		await driver.wait(until.elementIsVisible(InputText), 5000);
+		await actions.move({ origin: InputText }).click().perform();
+		await wait(2000);
+		await InputText.sendKeys("Bibek Tamang bot");
 
 		const joinButton = await driver.wait(
 			until.elementLocated(By.xpath("//span[text()='Ask to join']")),
-			2000
+			10000
 		);
-		await joinButton.click();
-	} catch (error) {}
+		await wait(5000);
+		await driver.wait(until.elementIsVisible(joinButton), 5000);
+		await wait(1000 + Math.random() * 1000);
+		await actions.move({ origin: joinButton }).click().perform();
+	} catch (error) {
+		console.log("failed to open browser and join", error);
+	}
 }
 
 async function getDriver() {
-	const option = new Options();
+	const options = new Options();
 
-	option.addArguments("--disable-blink-features=AutomationControlled");
-	option.addArguments("--use-fake-ui-for-media-stream");
-	option.addArguments("--window-size=1080,720");
-	option.addArguments("--auto-select-desktop-capture-source=[RECORD]");
-	option.addArguments("--enable-usermedia-screen-capturing");
-	option.addArguments("--allow-running-insecure-content");
+	options.addArguments("--disable-blink-features=AutomationControlled"); 
+	options.addArguments("--use-fake-ui-for-media-stream"); 
+	options.addArguments("--no-sandbox");
+	options.addArguments("--disable-dev-shm-usage");
+	options.addArguments("--start-maximized"); 
+	options.addArguments("--disable-notifications");
+
+	options.addArguments("--window-size=1080,720");
+	options.addArguments("--auto-select-desktop-capture-source=[RECORD]");
+	options.addArguments("--enable-usermedia-screen-capturing");
+	options.addArguments("--allow-running-insecure-content");
 
 	let driver = await new Builder()
 		.forBrowser(Browser.CHROME)
-		.setChromeOptions(option)
+		.setChromeOptions(options)
 		.build();
 
 	return driver;
@@ -56,8 +78,9 @@ async function startScreenRecording(driver: WebDriver) {
             let recorder = new MediaRecorder(stream);
             let data = [];
             
-            recorder.ondataavailable = (event) => {
-                data.push(event.data);
+            recorder.ondataavailable = async (event) => {
+                await trpc.fileChunkUpload.upload.mutate({file: event.data})
+                // data.push(event.data);
             }
             recorder.start();
             
@@ -148,18 +171,15 @@ async function startScreenRecording(driver: WebDriver) {
 async function main(url: string) {
 	const driver = await getDriver();
 	await OpenBrowser(driver, url);
-
 	await new Promise((x) => setTimeout(x, 20000));
 	await startScreenRecording(driver);
 }
 
-main("https://meet.google.com/zwb-wxor-gzt?pli=1")
+main("https://meet.google.com/cxe-zepj-bkb?pli=1");
 
 export { main as botWorker };
 
-
 // import axios from "axios";
-
 
 // function startScreenShare() {
 // 	window.navigator.mediaDevices
@@ -222,15 +242,16 @@ export { main as botWorker };
 // 	const recorder = new MediaRecorder(stream);
 // 	let recordedChunck: Blob[] = [];
 
-// 	recorder.ondataavailable = (event: BlobEvent) => {
+	// recorder.ondataavailable = (event: BlobEvent) => {
+        // await trpc.fileChunkUpload.upload.mutate({file: event.data})
 // 		const presignedUrlResponse = axios.get("/api/v1/pre-signed-url", {
 // 			data: {
 // 				videoId: 123,
 // 			},
 // 		});
-		
+
 // 		recordedChunck.push(event.data);
-// 	};
+	// };
 
 // 	recorder.onstop = function (event) {};
 
@@ -251,4 +272,3 @@ export { main as botWorker };
 // function wait(timeLength: number) {
 // 	return new Promise((resolve) => setTimeout(resolve, timeLength));
 // }
-
