@@ -13,7 +13,7 @@ const Footer = () => {
 						>
 							<div className="relative h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-purple-500 to-blue-500">
 								<div className="absolute inset-0 flex items-center justify-center text-white font-bold">
-									F
+									R
 								</div>
 							</div>
 							<span className="font-bold text-xl">Recalify AI</span>

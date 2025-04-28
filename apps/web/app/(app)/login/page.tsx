@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import React from "react";
@@ -9,14 +16,14 @@ const Login = () => {
 		<div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-background via-background/95 to-background/90 p-4">
 			<Link
 				href="/"
-				className="absolute left-8 top-8 flex items-center gap-2"
+				className="absolute left-8 top-8 flex items-center justify-center gap-2"
 			>
 				<div className="relative h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-purple-500 to-blue-500">
 					<div className="absolute inset-0 flex items-center justify-center text-white font-bold">
-						F
+						R
 					</div>
 				</div>
-				<span className="font-bold text-xl">Fathom AI</span>
+				<span className="font-bold text-xl">Recaify</span>
 			</Link>
 
 			<Card className="w-full max-w-md">
@@ -64,7 +71,7 @@ const Login = () => {
 						Don&apos;t have an account?{" "}
 						<Link
 							href="/signup"
-							className="text-primary hover:underline"
+							className="hover:underline text-purple-400 hover:text-purple-300"
 						>
 							Sign up
 						</Link>
