@@ -1,6 +1,15 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "../ui/button";
+import {
+	Menubar,
+	MenubarContent,
+	MenubarItem,
+	MenubarMenu,
+	MenubarPortal,
+	MenubarTrigger,
+} from "../ui/menubar";
+import { ListCollapse, Menu, Newspaper, RussianRuble } from "lucide-react";
 
 const Header = () => {
 	return (
@@ -39,7 +48,7 @@ const Header = () => {
 						Blog
 					</Link>
 				</nav>
-				<div className="flex items-center gap-4">
+				<div className="hidden md:flex items-center gap-4">
 					<Link href="/login">
 						<Button
 							variant="ghost"
@@ -57,6 +66,57 @@ const Header = () => {
 						</Button>
 					</Link>
 				</div>
+
+				<Menubar className="md:hidden block">
+					<MenubarMenu>
+						<MenubarTrigger className="hover:cursor-pointer">
+							<Menu />
+						</MenubarTrigger>
+						<MenubarContent>
+							<MenubarItem className="hover:text-indigo-500">
+								<Link
+									href={`#features`}
+									className=" flex items-center gap-2"
+								>
+									<ListCollapse />
+									Features
+								</Link>
+							</MenubarItem>
+							<MenubarItem className="hover:text-indigo-500">
+								<Link
+									href={`#pricing`}
+									className=" flex items-center gap-2"
+								>
+									<RussianRuble />
+									Pricing
+								</Link>
+							</MenubarItem>
+							<MenubarItem className="hover:text-indigo-500">
+								<Link
+									href={`#blog`}
+									className=" flex items-center gap-2"
+								>
+									<Newspaper />
+									Blog
+								</Link>
+							</MenubarItem>
+							<MenubarItem className="hover:text-indigo-500">
+								<Link
+									href={`/login`}
+								>
+									Login
+								</Link>
+							</MenubarItem>
+							<MenubarItem className="hover:text-indigo-500">
+								<Link
+									href={`/signup`}
+								>
+									Signup
+								</Link>
+							</MenubarItem>
+						</MenubarContent>
+					</MenubarMenu>
+				</Menubar>
 			</div>
 		</header>
 	);
