@@ -9,6 +9,7 @@ const result = NextAuth({
 	},
 	callbacks: {
 		async signIn({ account, profile }) {
+			console.log("uyeat config ako asfdhj")
 			if (account?.provider === "google") {
 				if (!profile?.email) return false;
 				try {
@@ -46,6 +47,9 @@ const result = NextAuth({
 			return session;
 		},
 	},
+	pages: {
+		signIn: '/signin',
+	}
 });
 
 const handlers: NextAuthResult["handlers"] = result.handlers;

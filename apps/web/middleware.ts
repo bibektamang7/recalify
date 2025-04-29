@@ -1,7 +1,8 @@
 import { auth } from "./lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
-auth(async function middleware(req: NextRequest) {
+async function middleware(req: NextRequest) {
+	const session = await auth();
 	const path = req.nextUrl.pathname;
 
 	const isPublicPath =
@@ -12,7 +13,7 @@ auth(async function middleware(req: NextRequest) {
 		path === "/terms" ||
 		path === "/privacy";
 
-	const isAuthenticated = req.cookies.has("auth-token");
+	const isAuthenticated = session?.user;
 
 	if (!isAuthenticated && !isPublicPath) {
 		const redirectUrl = new URL("/login", req.url);
@@ -25,10 +26,15 @@ auth(async function middleware(req: NextRequest) {
 	}
 
 	return NextResponse.next();
-});
+}
 
 export const config = {
-	matcher: ["/((?!_next/static|_next/image|favicon.ico|public).*)"],
+	matcher: [
+		"/((?!_next/static|_next/image|favicon.ico|public).*)",
+		"/login",
+		"/signup",
+		"/dashboard/:path*",
+	],
 };
 
-export default auth;
+export default middleware;
