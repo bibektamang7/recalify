@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import DashboardSidebar from "@/components/dashboard-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
