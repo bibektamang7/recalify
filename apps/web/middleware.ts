@@ -8,12 +8,13 @@ async function middleware(req: NextRequest) {
 	const isPublicPath =
 		path === "/" ||
 		path === "/login" ||
-		path === "signup" ||
+		path === "/signup" ||
 		path.startsWith("/blog") ||
 		path === "/terms" ||
 		path === "/privacy";
 
 	const isAuthenticated = session?.user;
+	console.log(isAuthenticated, 'this ischek', path)
 
 	if (!isAuthenticated && !isPublicPath) {
 		const redirectUrl = new URL("/login", req.url);
@@ -30,7 +31,7 @@ async function middleware(req: NextRequest) {
 
 export const config = {
 	matcher: [
-		"/((?!_next/static|_next/image|favicon.ico|public).*)",
+		// "/((?!_next/static|_next/image|favicon.ico|public).*)",
 		"/login",
 		"/signup",
 		"/dashboard/:path*",

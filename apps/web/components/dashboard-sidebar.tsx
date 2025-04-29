@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useSession, signOut } from "next-auth/react";
 
 const DashboardSidebar = () => {
+	const session = useSession();
 	const pathname = usePathname();
 
 	const isActive = (path: string) => {
@@ -85,21 +87,19 @@ const DashboardSidebar = () => {
 					</Avatar>
 					<div className="flex-1 overflow-hidden">
 						<p className="text-sm font-medium leading-none truncate">
-							John Doe
+							{session.data?.user?.name}
 						</p>
 						<p className="text-xs text-muted-foreground truncate">
-							john@example.com
+							{session.data?.user?.email}
 						</p>
 					</div>
 					<Button
 						variant="ghost"
 						size="icon"
-						asChild
+						className="hover:cursor-pointer"
+						onClick={async () => await signOut({ redirectTo: "/" })}
 					>
-						<Link href="/logout">
-							<LogOut className="h-5 w-5" />
-							<span className="sr-only">Log out</span>
-						</Link>
+						<LogOut className="h-5 w-5" />
 					</Button>
 				</div>
 			</SidebarFooter>
