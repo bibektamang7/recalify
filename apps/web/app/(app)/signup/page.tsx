@@ -31,7 +31,7 @@ const Signup = () => {
 						Sign up
 					</CardTitle>
 					<CardDescription className="text-zinc-400">
-						Create an account with Google to get started with Fathom AI
+						Create an account with Google to get started with Recalify AI 
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col items-center">

@@ -23,7 +23,7 @@ const DashboardSidebar = () => {
 	};
 
 	return (
-		<Sidebar>
+		<Sidebar >
 			<SidebarHeader className="border-b border-border/40 py-4">
 				<Link
 					href="/dashboard"
@@ -31,10 +31,10 @@ const DashboardSidebar = () => {
 				>
 					<div className="relative h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-purple-500 to-blue-500">
 						<div className="absolute inset-0 flex items-center justify-center text-white font-bold">
-							F
+							R
 						</div>
 					</div>
-					<span className="font-bold text-xl">Fathom AI</span>
+					<span className="font-bold text-xl">Recalify AI</span>
 				</Link>
 			</SidebarHeader>
 			<SidebarContent>
