@@ -23,7 +23,7 @@ const DashboardSidebar = () => {
 	};
 
 	return (
-		<Sidebar >
+		<Sidebar>
 			<SidebarHeader className="border-b border-border/40 py-4">
 				<Link
 					href="/dashboard"
@@ -37,7 +37,7 @@ const DashboardSidebar = () => {
 					<span className="font-bold text-xl">Recalify AI</span>
 				</Link>
 			</SidebarHeader>
-			<SidebarContent>
+			<SidebarContent className="mt-2 px-2">
 				<SidebarMenu>
 					<SidebarMenuItem>
 						<SidebarMenuButton
@@ -69,17 +69,6 @@ const DashboardSidebar = () => {
 							<Link href="/dashboard/favorites">
 								<Star className="h-5 w-5" />
 								<span>Favorites</span>
-							</Link>
-						</SidebarMenuButton>
-					</SidebarMenuItem>
-					<SidebarMenuItem>
-						<SidebarMenuButton
-							asChild
-							isActive={isActive("/dashboard/settings")}
-						>
-							<Link href="/dashboard/settings">
-								<Settings className="h-5 w-5" />
-								<span>Settings</span>
 							</Link>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
