@@ -1,0 +1,16 @@
+{
+	"name": "bot-spawn",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"devDependencies": {
+		"@types/bun": "latest",
+		"@types/selenium-webdriver": "^4.1.28"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"selenium-webdriver": "^4.32.0"
+	}
+}
