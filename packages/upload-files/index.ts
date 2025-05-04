@@ -8,14 +8,14 @@ export class StreamUploadFile {
 		const videoUploader = S3.file(fileName, {
 			partSize: 40 * 29,
 			retry: 3,
-			type: "video/mp4",
+			type: "video/webm",
 		});
 		this.videoUploadS3File = videoUploader;
 		const videoWriter = videoUploader.writer({
 			retry: 3,
 			queueSize: 4,
 			partSize: 5 * 1024 * 1024,
-			type: "video/mp4",
+			type: "video/webm",
 		});
 		this.writer = videoWriter;
 	}
