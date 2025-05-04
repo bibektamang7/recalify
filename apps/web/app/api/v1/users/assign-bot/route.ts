@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { getAuthUser } from "@/lib/verifyUser";
+import { botWorker } from "@/services/recording-bot/bot";
 import { prismaClient } from "db";
 import { NextRequest, NextResponse } from "next/server";
 import { AssignBotSchema } from "validation";
@@ -24,12 +25,13 @@ export async function POST(req: NextRequest) {
 		const video = await prismaClient.video.create({
 			data: {
 				title: parsedData.data.videoName,
-				userId: "",
+				userId: user.id,
 			},
 		});
 
 		// TODO:
 		// use bullMQ here for asynchronous bot assigning
+		await botWorker(parsedData.data.meetingUrl);
 
 		return NextResponse.json(
 			{ success: true, message: "Bot Assigned" },
