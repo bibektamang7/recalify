@@ -92,6 +92,7 @@ export class MeetingRecorder {
 	private async startRecording(): Promise<void> {
 		const response = await this.driver?.executeScript(`
 			const backendURL = ${JSON.stringify(process.env.BACKEND_URL)}
+			const videoId = ${JSON.stringify(this.videoId)}
         function wait(delayInMS) {
             return new Promise((resolve) => setTimeout(resolve, delayInMS));
         }
@@ -104,6 +105,7 @@ export class MeetingRecorder {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/octet-stream",
+						"X-Upload-Id": \`\${videoId}\'
 					},
 					body: event.data,
 
@@ -171,6 +173,12 @@ export class MeetingRecorder {
           ]);
           
           console.log("before start recording")
+		  await fetch(\`\${backendURL}/api/v1/uploadStreamFile/start\` , {
+			method: "POST",
+			headers: {
+				"X-Upload-Id": \`\${videoId}\`
+			}
+		  })
           const recordedChunks = await startRecording(combinedStream);
           console.log("after start recording")
           
