@@ -1,7 +1,4 @@
-"use client";
-
 import type React from "react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -14,17 +11,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Video, LinkIcon } from "lucide-react";
+import axios from "axios";
 
 const NewMeetingPage = () => {
-	const [meetingUrl, setMeetingUrl] = useState("");
-	const [meetingName, setMeetingName] = useState("");
-
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-		// Handle form submission
-		console.log({ meetingUrl, meetingName });
-		// Redirect to dashboard or meeting page
-	};
+	async function createBot(formData: FormData) {
+		"use server";
+		try {
+			await axios.post(
+				`${process.env.AUTH_URL}/api/v1/users/assign-bot`,
+				formData
+			);
+		} catch (error) {
+			console.log("someting went worng here", error);
+		}
+	}
 
 	return (
 		<div className="mx-auto max-w-2xl h-full flex flex-col justify-center">
@@ -36,7 +36,7 @@ const NewMeetingPage = () => {
 						Enter a Google Meet URL and a name for your meeting
 					</CardDescription>
 				</CardHeader>
-				<form onSubmit={handleSubmit}>
+				<form action={createBot}>
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
 							<Label htmlFor="meetingUrl">Google Meet URL</Label>
@@ -44,9 +44,8 @@ const NewMeetingPage = () => {
 								<LinkIcon className="h-4 w-4 text-muted-foreground" />
 								<Input
 									id="meetingUrl"
+									name="meetingUrl"
 									placeholder="https://meet.google.com/abc-defg-hij"
-									value={meetingUrl}
-									onChange={(e) => setMeetingUrl(e.target.value)}
 									required
 								/>
 							</div>
@@ -57,9 +56,8 @@ const NewMeetingPage = () => {
 								<Video className="h-4 w-4 text-muted-foreground" />
 								<Input
 									id="meetingName"
+									name="videoName"
 									placeholder="Weekly Team Standup"
-									value={meetingName}
-									onChange={(e) => setMeetingName(e.target.value)}
 									required
 								/>
 							</div>

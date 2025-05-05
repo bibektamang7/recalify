@@ -11,6 +11,7 @@ import { StreamUploadFile } from "upload-files";
 
 export async function POST(req: NextRequest) {
 	const uploadId = req.headers.get("X-Upload-Id");
+	const uploadPart = req.headers.get("x-upload-part");
 	const uploadData = await req.json();
 	if (!uploadId) {
 		return NextResponse.json({ success: false }, { status: 400 });
@@ -24,7 +25,8 @@ export async function POST(req: NextRequest) {
 		StreamUploadFile,
 		JSON.parse(storedData)
 	);
-	deserializedUploader.upload(uploadData);
+	//TODO: QUEUE this
+	await deserializedUploader.upload(uploadData, Number(uploadPart));
 
 	return NextResponse.json({ success: true }, { status: 200 });
 }

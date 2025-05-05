@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Plus, Star, Settings, LogOut } from "lucide-react";
+import { Home, Plus, Star, LogOut } from "lucide-react";
 import {
 	Sidebar,
 	SidebarContent,

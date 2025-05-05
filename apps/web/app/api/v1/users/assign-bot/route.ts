@@ -1,9 +1,8 @@
-import { auth } from "@/lib/auth";
 import { getAuthUser } from "@/lib/verifyUser";
-import { botWorker } from "@/services/recording-bot/bot";
 import { prismaClient } from "db";
 import { NextRequest, NextResponse } from "next/server";
 import { AssignBotSchema } from "validation";
+import { spawn } from "child_process";
 
 export async function POST(req: NextRequest) {
 	const user = await getAuthUser();
@@ -30,12 +29,37 @@ export async function POST(req: NextRequest) {
 		});
 
 		// TODO:
-		// use bullMQ here for asynchronous bot assigning
-		await botWorker(parsedData.data.meetingUrl);
+		const dockerArgs = [
+			"run",
+			"--rm",
+			"--name",
+			`bot-${video.id}`, //container name
+			video.id,
+			parsedData.data.meetingUrl,
+		];
+		const docker = spawn("docker", dockerArgs);
+
+		docker.stdout.on("data", (data) => {
+			console.log(`${video.id}`, data);
+		});
+
+		docker.stderr.on("data", (data) => {
+			console.log(`${video.id} ERROR`, data);
+		});
+
+		docker.on("close", (code) => {
+			console.log(`${video.id} exited with code `, code);
+		});
 
 		return NextResponse.json(
 			{ success: true, message: "Bot Assigned" },
 			{ status: 200 }
 		);
-	} catch (error) {}
+	} catch (error) {
+		console.log("unable to assign bot", error);
+		return NextResponse.json(
+			{ success: false, message: "Failed to assign bot" },
+			{ status: 500 }
+		);
+	}
 }

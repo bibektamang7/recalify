@@ -1,10 +1,24 @@
 import { auth } from "./lib/auth";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 async function middleware(req: NextRequest) {
 	const session = await auth();
 	const path = req.nextUrl.pathname;
-
+	if (path.startsWith("/api/v1")) {
+		const res = NextResponse.next();
+		res.headers.append("Access-Control-Allow-Credentials", "true");
+		res.headers.append("Access-Control-Allow-Origin", "*");
+		res.headers.append(
+			"Access-Control-Allow-Methods",
+			"GET,DELETE,PATCH,POST,PUT,OPTIONS"
+		);
+		res.headers.append(
+			"Access-Control-Allow-Headers",
+			"X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
+		);
+		return res;
+	}
 	const isPublicPath =
 		path === "/" ||
 		path === "/login" ||
@@ -14,7 +28,7 @@ async function middleware(req: NextRequest) {
 		path === "/privacy";
 
 	const isAuthenticated = session?.user;
-	console.log(isAuthenticated, 'this ischek', path)
+	console.log(isAuthenticated, "this ischek", path);
 
 	if (!isAuthenticated && !isPublicPath) {
 		const redirectUrl = new URL("/login", req.url);
@@ -35,6 +49,7 @@ export const config = {
 		"/login",
 		"/signup",
 		"/dashboard/:path*",
+		"/api/:path*",
 	],
 };
 
