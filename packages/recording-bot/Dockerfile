@@ -1,12 +1,20 @@
-FROM oven/bun:latest 
+FROM oven/bun:slim AS builder
+
+WORKDIR /recordingBot
+
+COPY . .
+
+RUN bun install
+ARG BACKEND_URL
+ENV BACKEND_URL=$BACKEND_URL
+RUN bun run build
+
+# runner phase
+
+FROM oven/bun:slim AS runner
 
 WORKDIR /app
 
-COPY package.json bun.lock ./
+COPY --from=builder /recordingBot/dist ./dist 
 
-RUN bun install
-
-COPY ./src ./src 
-COPY tsconfig.json .
-
-ENTRYPOINT [ "bun", "src/index.ts" ]
+CMD [ "bun", "dist/index.js" ]

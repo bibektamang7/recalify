@@ -101,13 +101,14 @@ export class MeetingRecorder {
             let recorder = new MediaRecorder(stream);
             
             recorder.ondataavailable = async (event) => {
+				const arrayBuffer = await event.data.arrayBuffer()
 				await fetch(\`\${backendURL}/api/v1/upload-streamFile/upload\`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/octet-stream",
 						"X-Upload-Id": \`\${videoId}\'
 					},
-					body: event.data,
+					body: \`\${arrayBuffer}\`,
 
 				})
 				//TODO:check number of participants, if only one then end recording
