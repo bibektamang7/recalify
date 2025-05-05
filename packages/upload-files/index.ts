@@ -1,39 +1,100 @@
-import { S3 } from "./config";
+// import { S3 } from "./config";
+import { s3 } from "./config";
+import {
+	CompleteMultipartUploadCommand,
+	CreateMultipartUploadCommand,
+	UploadPartCommand,
+} from "@aws-sdk/client-s3";
+
+const R2_BUCKET = process.env.R2_BUCKET!;
 
 export class StreamUploadFile {
-	public videoUploadS3File: Bun.S3File | null = null;
-	public writer: Bun.NetworkSink | null = null;
-	constructor() {}
-	public start(fileName: string) {
-		const videoUploader = S3.file(fileName, {
-			partSize: 40 * 29,
-			retry: 3,
-			type: "video/webm",
+	private uploadId: string | undefined = undefined;
+	private eTag: string | undefined = undefined;
+	private key: string | null = null;
+	private storedParts: Array<{ ETag: string; PartNumber: number }> = [];
+	public async start(fileName: string) {
+		const command = new CreateMultipartUploadCommand({
+			Bucket: R2_BUCKET,
+			Key: fileName,
+			ContentType: "video/mp4",
 		});
-		this.videoUploadS3File = videoUploader;
-		const videoWriter = videoUploader.writer({
-			retry: 3,
-			queueSize: 4,
-			partSize: 5 * 1024 * 1024,
-			type: "video/webm",
-		});
-		this.writer = videoWriter;
+		const { UploadId } = await s3.send(command);
+		this.uploadId = UploadId;
+		this.key = fileName;
 	}
-	public upload(data: ArrayBuffer) {
-		if (!this.writer) {
+	//TODO: comes blob from frontend
+	public async upload(data: Blob, partNumber: number) {
+		if (!this.uploadId || !this.key) {
 			return;
 		}
 		try {
-			const bytesWritten = this.writer.write(data);
+			const command = new UploadPartCommand({
+				Bucket: R2_BUCKET,
+				Key: this.key,
+				PartNumber: partNumber,
+				Body: data,
+				UploadId: this.uploadId,
+			});
+
+			const uploadRes = await this.uploadPartWithRetry(
+				{
+					Bucket: R2_BUCKET,
+					Key: this.key,
+					PartNumber: partNumber,
+					Body: data,
+					UploadId: this.uploadId,
+				},
+				3
+			);
+			if (!uploadRes) {
+				return;
+			}
+
+			const { ETag } = uploadRes;
+			this.eTag = ETag;
+			this.storedParts.push({ ETag: ETag!, PartNumber: partNumber });
 		} catch (error: any) {
 			console.log("something went wrong", error);
 		}
 	}
-	public stop() {
-		if (!this.writer) {
-			console.log("Writer is null");
+	public async stop() {
+		if (!this.eTag || !this.key) {
 			return;
 		}
-		this.writer.end();
+		const command = new CompleteMultipartUploadCommand({
+			Bucket: R2_BUCKET,
+			Key: this.key,
+			UploadId: this.uploadId,
+			MultipartUpload: {
+				Parts: this.storedParts,
+			},
+		});
+		await s3.send(command);
+	}
+	async uploadPartWithRetry(
+		params: {
+			Bucket: string;
+			Key: string;
+			UploadId: string;
+			PartNumber: number;
+			Body: any;
+		},
+		maxRetries: number = 3
+	) {
+		let attempt = 0;
+		while (attempt < maxRetries) {
+			try {
+				const result = await s3.send(new UploadPartCommand(params));
+				return result;
+			} catch (error) {
+				attempt++;
+				console.warn(`upload part ${params.PartNumber} failed`);
+				if (attempt >= maxRetries)
+					throw new Error(`Failed to upload part ${params.PartNumber}`);
+
+				await new Promise((res) => setTimeout(res, 2 ** attempt * 100));
+			}
+		}
 	}
 }
