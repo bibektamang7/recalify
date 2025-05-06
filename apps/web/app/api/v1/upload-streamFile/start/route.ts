@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { redisClient } from "redis-config";
 import { StreamUploadFile } from "upload-files";
@@ -9,8 +9,8 @@ export async function POST(req: NextRequest) {
 		return NextResponse.json({ success: false }, { status: 400 });
 	}
 	const streamUpload = new StreamUploadFile();
-	streamUpload.start(`${uploadId}.webm`);
+	streamUpload.start(`${uploadId}.mp4`);
 
-	redisClient.set(uploadId, JSON.stringify(streamUpload));
+	await redisClient.set(uploadId, JSON.stringify(streamUpload));
 	return NextResponse.json({ success: true }, { status: 200 });
 }

@@ -11,6 +11,11 @@ export async function PATCH(req: NextRequest) {
 	}
 	const storedData = await redisClient.get(uploadId);
 	const streamUploaderInstance = plainToInstance(StreamUploadFile, storedData);
-	await streamUploaderInstance.stop()
+	await streamUploaderInstance.stop();
+	return NextResponse.json(
+		{
+			success: true,
+		},
+		{ status: 200 }
+	);
 }
-
