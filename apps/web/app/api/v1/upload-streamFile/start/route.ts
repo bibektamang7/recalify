@@ -11,6 +11,13 @@ export async function POST(req: NextRequest) {
 	const streamUpload = new StreamUploadFile();
 	streamUpload.start(`${uploadId}.mp4`);
 
-	await redisClient.set(uploadId, JSON.stringify(streamUpload));
-	return NextResponse.json({ success: true }, { status: 200 });
+	try {
+		await redisClient.set(uploadId, JSON.stringify(streamUpload));
+		return NextResponse.json({ success: true }, { status: 200 });
+	} catch (error) {
+		return NextResponse.json(
+			{ success: false, message: "Internal server error" },
+			{ status: 500 }
+		);
+	}
 }
