@@ -1,5 +1,5 @@
 import { Builder, Browser, By, until, WebDriver } from "selenium-webdriver";
-import { Driver, Options } from "selenium-webdriver/chrome";
+import { Options } from "selenium-webdriver/chrome";
 
 export class MeetingRecorder {
 	private driver: WebDriver | null = null;
@@ -34,13 +34,12 @@ export class MeetingRecorder {
 		try {
 			await this.getDriver();
 			await this.joinMeeting();
-			await new Promise((x) => setTimeout(x, 10000));
-			try {
-				await this.startRecording();
-			} catch (error) {
-				console.log("something went wrong", error);
-			}
-		} catch (error) {}
+			await new Promise((x) => setTimeout(x, 2000));
+			await this.startRecording();
+		} catch (error) {
+			console.log("something went wrong", error);
+			//TODO: Notify user something went wrong, couln't keep recording
+		}
 	}
 	private async joinMeeting(): Promise<void> {
 		const driver = this.driver;
@@ -96,118 +95,20 @@ export class MeetingRecorder {
 			console.log("driver is not available");
 			return;
 		}
-		// const backendURL = JSON.stringify(process.env.BACKEND_URL);
-		// const videoId = JSON.stringify(this.videoId);
-
-		// 	const response = await this.driver.executeAsyncScript(`
-		// 		const backendURL = ${backendURL}
-		// 		const videoId = ${videoId}
-		//     function wait(delayInMS) {
-		//         return new Promise((resolve) => setTimeout(resolve, delayInMS));
-		//     }
-		// 	async function uploadStream(arrayBuffer) {
-		// 		await fetch(\`\${backendURL}/api/v1/upload-streamFile/upload\`, {
-		// 			method: "POST",
-		// 			headers: {
-		// 			"Content-Type": "application/octet-stream",
-		// 			"X-Upload-Id": \`\${videoId}\'
-		// 		},
-		// 			body: \`\${arrayBuffer}\`,
-		// 		})
-		// 	}
-
-		//     function startRecording(stream) {
-		// 		return new Promise((resolve, reject) => {
-		//     	    let recorder = new MediaRecorder(stream);
-		//     	    let data = [];
-		//     	    recorder.ondataavailable =  (event) => {
-		// 				console.log("collecting data")
-		// 				// const arrayBuffer = await event.data.arrayBuffer()
-		// 				// await uploadStream(arrayBuffer)
-		// 			}
-		// 			recorder.onerror = (event) => {
-		// 				console.log("error occur")
-		// 			}
-		// 			recorder.onstop = () => {
-		// 				console.log("recording stop")
-		// 			}
-		//     	    recorder.start(15000);
-		// 		})
-		//     }
-
-		//     console.log("before mediadevices")
-
-		//     window.navigator.mediaDevices.getDisplayMedia({
-		//         video: {
-		//           displaySurface: "browser"
-		//         },
-		//         audio: true,
-		//         preferCurrentTab: true
-		//     }).then(async screenStream => {
-		//         const audioContext = new AudioContext();
-		//         const screenAudioStream = audioContext.createMediaStreamSource(screenStream)
-		//         const audioEl1 = document.querySelectorAll("audio")[0];
-		//         const audioEl2 = document.querySelectorAll("audio")[1];
-		//         const audioEl3 = document.querySelectorAll("audio")[2];
-		//         const audioElStream1 = audioContext.createMediaStreamSource(audioEl1.srcObject)
-		//         const audioElStream2 = audioContext.createMediaStreamSource(audioEl3.srcObject)
-		//         const audioElStream3 = audioContext.createMediaStreamSource(audioEl2.srcObject)
-
-		//         const dest = audioContext.createMediaStreamDestination();
-
-		//         screenAudioStream.connect(dest)
-		//         audioElStream1.connect(dest)
-		//         audioElStream2.connect(dest)
-		//         audioElStream3.connect(dest)
-
-		//         // window.setInterval(() => {
-		//         //   document.querySelectorAll("audio").forEach(audioEl => {
-		//         //     if (!audioEl.getAttribute("added")) {
-		//         //       console.log("adding new audio");
-		//         //       const audioEl = document.querySelector("audio");
-		//         //       const audioElStream = audioContext.createMediaStreamSource(audioEl.srcObject)
-		//         //       audioEl.setAttribute("added", true);
-		//         //       audioElStream.connect(dest)
-		//         //     }
-		//         //   })
-
-		//         // }, 2500);
-
-		//       // Combine screen and audio streams
-		//       const combinedStream = new MediaStream([
-		//           ...screenStream.getVideoTracks(),
-		//           ...dest.stream.getAudioTracks()
-		//       ]);
-
-		//       console.log("before start recording")
-		//       await startRecording(combinedStream);
-		//       console.log("after start recording")
-
-		//       console.log("after download button click")
-
-		//       // Clean up streams
-		//       screenStream.getTracks().forEach(track => track.stop());
-		//       audioStream.getTracks().forEach(track => track.stop());
-		//     })
-
-		// `);
-
 		const backendURL = process.env.BACKEND_URL;
-		const videoId = "123";
-		function wait(delayInMS: number) {
-			return new Promise((resolve) => setTimeout(resolve, delayInMS));
-		}
+
+		const videoId = this.videoId;
 
 		this.driver.executeScript(
-			function (backendURL: string, videoId: string, driver: Driver) {
-				async function uploadStream(arrayBuffer: any) {
-					console.log(backendURL);
+			function (backendURL: string, videoId: string) {
+				async function uploadStream(arrayBuffer: Blob, partNumber: number) {
 					await fetch(`${backendURL}/api/v1/upload-streamFile/upload`, {
 						method: "POST",
 						headers: {
-							"Content-Type": "application/octet-stream",
 							"X-Upload-Id": videoId,
+							"x-part-number": partNumber.toString(),
 						},
+						body: arrayBuffer,
 					});
 				}
 
@@ -239,21 +140,67 @@ export class MeetingRecorder {
 							return Number(sibling.innerText.trim());
 						}
 					}
-					const closeButtonXpath = "//div[text()='Close']";
+					// const closeButtonXpath = "//div[text()='Close']";
 
-					const closeButton = document.evaluate(
-						closeButtonXpath,
-						document,
-						null,
-						XPathResult.FIRST_ORDERED_NODE_TYPE,
-						null
-					);
+					// const closeButton = document.evaluate(
+					// 	closeButtonXpath,
+					// 	document,
+					// 	null,
+					// 	XPathResult.FIRST_ORDERED_NODE_TYPE,
+					// 	null
+					// );
 
-					const clsBtn = closeButton.singleNodeValue
-						?.previousSibling as HTMLButtonElement;
+					// const clsBtn = closeButton.singleNodeValue
+					// 	?.previousSibling as HTMLButtonElement;
 
-					clsBtn.click();
+					// clsBtn.click();
 					return 0;
+				}
+
+				const successPromise = (fetchFC: () => Promise<boolean>) => {
+					return new Promise(async (resolve, reject) => {
+						let count = 3;
+						while (count !== 0) {
+							const res = await fetchFC();
+							if (res) return resolve("Successfull");
+							count--;
+						}
+						return reject();
+					});
+				};
+				async function startRecord() {
+					try {
+						const res = await fetch(
+							`${backendURL}/api/v1/upload-streamFile/start`,
+							{
+								method: "POST",
+								headers: {
+									"X-Upload-Id": videoId,
+								},
+							}
+						);
+						if (res.ok) return true;
+						return false;
+					} catch (error) {
+						return false;
+					}
+				}
+				async function stopRecording() {
+					try {
+						const response = await fetch(
+							`${backendURL}/api/v1/upload-streamFile/stop`,
+							{
+								method: "PATCH",
+								headers: {
+									"X-Upload-Id": videoId,
+								},
+							}
+						);
+						if (response.ok) return true;
+						return false;
+					} catch (error) {
+						return false;
+					}
 				}
 
 				function startRecording(stream: any) {
@@ -261,21 +208,18 @@ export class MeetingRecorder {
 						let recorder = new MediaRecorder(stream);
 						let partNumber = 1;
 						recorder.ondataavailable = async (event) => {
-							console.log("collecting data");
 							const participants = findNumberOfParticipants();
-							console.log("no of participants", participants);
 							if (participants === 1) {
+								await successPromise(stopRecording);
 								recorder.stop();
+								return;
 							}
-							// const arrayBuffer = await event.data.arrayBuffer();
-							// await uploadStream(arrayBuffer);
+							await uploadStream(event.data, partNumber);
 						};
 						recorder.onerror = (event) => {
-							console.log("error occur");
 							reject();
 						};
 						recorder.onstop = () => {
-							console.log("recording stop");
 							resolve("Recorded successfully.");
 						};
 						recorder.start(2000);
@@ -320,19 +264,6 @@ export class MeetingRecorder {
 						audioElStream2.connect(dest);
 						audioElStream3.connect(dest);
 
-						// window.setInterval(() => {
-						//   document.querySelectorAll("audio").forEach(audioEl => {
-						//     if (!audioEl.getAttribute("added")) {
-						//       console.log("adding new audio");
-						//       const audioEl = document.querySelector("audio");
-						//       const audioElStream = audioContext.createMediaStreamSource(audioEl.srcObject)
-						//       audioEl.setAttribute("added", true);
-						//       audioElStream.connect(dest)
-						//     }
-						//   })
-
-						// }, 2500);
-
 						// Combine screen and audio streams
 
 						const combinedStream = new MediaStream([
@@ -341,13 +272,10 @@ export class MeetingRecorder {
 						]);
 
 						console.log("before start recording");
+						await successPromise(startRecord).catch((e) => {
+							throw new Error("Failed to start recording.");
+						});
 
-						// await fetch(`${backendURL}/api/v1/upload-streamFile/start`, {
-						// 	method: "POST",
-						// 	headers: {
-						// 		"X-Upload-Id": videoId,
-						// 	},
-						// });
 						await startRecording(combinedStream);
 						console.log("after start recording");
 
@@ -359,138 +287,18 @@ export class MeetingRecorder {
 					});
 			},
 			backendURL,
-			videoId,
-			this.driver
+			videoId
 		);
-
-		// this.driver.sleep(1000000);
 	}
 }
 
 (async () => {
-	// const videoId = process.argv[2];
-	// const meetingUrl = process.argv[3];
+	const videoId = process.argv[2];
+	const meetingUrl = process.argv[3];
 
-	const videoId = "123";
-	const meetingUrl = "https://meet.google.com/hds-vjia-ekk";
-
-	// console.log(videoId, meetingUrl);
 	if (!videoId || !meetingUrl) {
 		process.exit(1);
 	}
 	const meetingInstance = new MeetingRecorder(videoId, meetingUrl);
 	await meetingInstance.start();
 })();
-
-// 	const response = await this.driver.executeScript(`
-
-// 		const backendURL = ${JSON.stringify(process.env.BACKEND_URL)}
-// 		const videoId = ${JSON.stringify(this.videoId)}
-//     function wait(delayInMS) {
-//         return new Promise((resolve) => setTimeout(resolve, delayInMS));
-//     }
-
-//     function startRecording(stream) {
-//         let recorder = new MediaRecorder(stream);
-
-//         recorder.ondataavailable = async (event) => {
-// 			const arrayBuffer = await event.data.arrayBuffer()
-// 			await fetch(\`\${backendURL}/api/v1/upload-streamFile/upload\`, {
-// 				method: "POST",
-// 				headers: {
-// 					"Content-Type": "application/octet-stream",
-// 					"X-Upload-Id": \`\${videoId}\'
-// 				},
-// 				body: \`\${arrayBuffer}\`,
-
-// 			})
-// 			//TODO:check number of participants, if only one then end recording
-//         }
-//         recorder.start();
-
-//         // let stopped = new Promise((resolve, reject) => {
-//         //     recorder.onstop = resolve;
-//         //     recorder.onerror = (event) => reject(event.name);
-//         // });
-
-//         // let recorded = wait(lengthInMS).then(() => {
-//         //     if (recorder.state === "recording") {
-//         //     recorder.stop();
-//         //     }
-//         // });
-
-//         // return Promise.all([stopped, recorded]).then(() => data);
-//     }
-
-//     console.log("before mediadevices")
-//     window.navigator.mediaDevices.getDisplayMedia({
-//         video: {
-//           displaySurface: "browser"
-//         },
-//         audio: true,
-//         preferCurrentTab: true
-//     }).then(async screenStream => {
-//         const audioContext = new AudioContext();
-//         const screenAudioStream = audioContext.createMediaStreamSource(screenStream)
-//         const audioEl1 = document.querySelectorAll("audio")[0];
-//         const audioEl2 = document.querySelectorAll("audio")[1];
-//         const audioEl3 = document.querySelectorAll("audio")[2];
-//         const audioElStream1 = audioContext.createMediaStreamSource(audioEl1.srcObject)
-//         const audioElStream2 = audioContext.createMediaStreamSource(audioEl3.srcObject)
-//         const audioElStream3 = audioContext.createMediaStreamSource(audioEl2.srcObject)
-
-//         const dest = audioContext.createMediaStreamDestination();
-
-//         screenAudioStream.connect(dest)
-//         audioElStream1.connect(dest)
-//         audioElStream2.connect(dest)
-//         audioElStream3.connect(dest)
-
-//         // window.setInterval(() => {
-//         //   document.querySelectorAll("audio").forEach(audioEl => {
-//         //     if (!audioEl.getAttribute("added")) {
-//         //       console.log("adding new audio");
-//         //       const audioEl = document.querySelector("audio");
-//         //       const audioElStream = audioContext.createMediaStreamSource(audioEl.srcObject)
-//         //       audioEl.setAttribute("added", true);
-//         //       audioElStream.connect(dest)
-//         //     }
-//         //   })
-
-//         // }, 2500);
-
-//       // Combine screen and audio streams
-//       const combinedStream = new MediaStream([
-//           ...screenStream.getVideoTracks(),
-//           ...dest.stream.getAudioTracks()
-//       ]);
-
-//       console.log("before start recording")
-// 	//   await fetch(\`\${backendURL}/api/v1/uploadStreamFile/start\` , {
-// 	// 	method: "POST",
-// 	// 	headers: {
-// 	// 		"X-Upload-Id": \`\${videoId}\`
-// 	// 	}
-// 	//   })
-//       const recordedChunks = await startRecording(combinedStream);
-//       console.log("after start recording")
-
-//     //   let recordedBlob = new Blob(recordedChunks, { type: "video/webm" });
-
-//       // Create download for video with audio
-//     //   const recording = document.createElement("video");
-//     //   recording.src = URL.createObjectURL(recordedBlob);
-
-//     //   const downloadButton = document.createElement("a");
-//     //   downloadButton.href = recording.src;
-//     //   downloadButton.download = "RecordedScreenWithAudio.webm";
-//     //   downloadButton.click();
-
-//       console.log("after download button click")
-
-//       // Clean up streams
-//       screenStream.getTracks().forEach(track => track.stop());
-//       audioStream.getTracks().forEach(track => track.stop());
-//     })
-
-// `);
