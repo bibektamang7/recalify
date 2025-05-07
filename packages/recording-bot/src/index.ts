@@ -295,7 +295,9 @@ export class MeetingRecorder {
 (async () => {
 	const videoId = process.argv[2];
 	const meetingUrl = process.argv[3];
+	console.log(videoId, "this is vidoe id");
 
+	console.log(meetingUrl, "this is meeting url");
 	if (!videoId || !meetingUrl) {
 		process.exit(1);
 	}
