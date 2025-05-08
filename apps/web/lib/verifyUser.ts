@@ -1,14 +1,11 @@
 import { auth } from "./auth";
 import { prismaClient } from "db";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export async function getAuthUser() {
 	const session = await auth();
+	console.log(session);
+	if (!session?.user) return null;
 
-	if (!session?.user?.email) return null;
-
-	const user = await prismaClient.user.findUnique({
-		where: { email: session.user.email },
-	});
-
-	return user;
+	return session.user;
 }

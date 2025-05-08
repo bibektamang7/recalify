@@ -2,11 +2,12 @@ import { getAuthUser } from "@/lib/verifyUser";
 import { prismaClient } from "db";
 import { NextRequest, NextResponse } from "next/server";
 import { AssignBotSchema } from "validation";
-import { spawn } from "child_process";
+import { assignBotToMeeting } from "@/services/bot-spawner";
 
 export async function POST(req: NextRequest) {
 	const user = await getAuthUser();
-	if (!user) {
+
+	if (!user || !user.id) {
 		return NextResponse.json(
 			{ success: false, message: "Unauthorized access" },
 			{ status: 401 }
@@ -27,32 +28,10 @@ export async function POST(req: NextRequest) {
 				userId: user.id,
 			},
 		});
-
-		// TODO:
-		const dockerArgs = [
-			"run",
-			"--rm",
-			"--name",
-			`bot-${video.id}`, //container name
-			video.id,
-			parsedData.data.meetingUrl,
-		];
-		const docker = spawn("docker", dockerArgs);
-
-		docker.stdout.on("data", (data) => {
-			console.log(`${video.id}`, data);
-		});
-
-		docker.stderr.on("data", (data) => {
-			console.log(`${video.id} ERROR`, data);
-		});
-
-		docker.on("close", (code) => {
-			console.log(`${video.id} exited with code `, code);
-		});
+		assignBotToMeeting(video.id, parsedData.data.meetingUrl);
 
 		return NextResponse.json(
-			{ success: true, message: "Bot Assigned" },
+			{ success: true, message: "Joining the meeting..." },
 			{ status: 200 }
 		);
 	} catch (error) {

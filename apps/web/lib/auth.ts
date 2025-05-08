@@ -8,8 +8,7 @@ const result = NextAuth({
 		strategy: "jwt",
 	},
 	callbacks: {
-		async signIn({ account, profile }) {
-			console.log("uyeat config ako asfdhj")
+		async signIn({ account, profile, user }) {
 			if (account?.provider === "google") {
 				if (!profile?.email) return false;
 				try {
@@ -18,14 +17,16 @@ const result = NextAuth({
 							email: profile.email,
 						},
 					});
+					user.id = createdUser?.id;
 					if (!createdUser) {
-						await prismaClient.user.create({
+						const userCreated = await prismaClient.user.create({
 							data: {
 								email: profile.email,
 								name: profile.name!,
 								profile: profile.picture,
 							},
 						});
+						user.id = userCreated.id;
 					}
 				} catch (error: any) {
 					console.log(error);
@@ -36,20 +37,22 @@ const result = NextAuth({
 		},
 		async jwt({ token, user, account, profile }) {
 			if (account && profile) {
+				token.id = user.id;
 				token.picture = profile.picture;
 			}
 			return token;
 		},
 		async session({ session, token }) {
 			if (session.user) {
+				session.user.id = token.id as string;
 				session.user.image = token.picture as string;
 			}
 			return session;
 		},
 	},
 	pages: {
-		signIn: '/signin',
-	}
+		signIn: "/signin",
+	},
 });
 
 const handlers: NextAuthResult["handlers"] = result.handlers;

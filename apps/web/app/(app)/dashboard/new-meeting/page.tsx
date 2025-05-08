@@ -1,3 +1,4 @@
+"use client";
 import type React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,17 +13,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Video, LinkIcon } from "lucide-react";
 import axios from "axios";
+import { toast } from "sonner";
 
 const NewMeetingPage = () => {
 	async function createBot(formData: FormData) {
-		"use server";
 		try {
-			await axios.post(
-				`${process.env.AUTH_URL}/api/v1/users/assign-bot`,
-				formData
-			);
+			const response = await axios.post(`/api/v1/users/assign-bot`, formData, {
+				withCredentials: true,
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+			toast(response.data.message || "Joining the meeting...");
 		} catch (error) {
-			console.log("someting went worng here", error);
+			toast("Joining failed.", {
+				style: { color: "red", font: "initial" },
+			});
 		}
 	}
 
