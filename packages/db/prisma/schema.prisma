@@ -16,18 +16,26 @@ model User {
   createdAt DateTime @default(now())
 }
 
+enum RecordingBotStatus {
+  JOINING
+  FAILED
+  RECORDING
+  RECORDED
+}
+
 model Video {
-  id            String       @id @default(uuid())
-  title         String
-  url           String?      @unique
-  userId        String
-  user          User         @relation(fields: [userId], references: [id])
-  isTranscribed Boolean      @default(false)
-  transcripts   Transcript[]
-  summaries     Summary[]
-  createdAt     DateTime     @default(now())
-  Question      Question[]
-  isFavourite   Boolean      @default(false)
+  id                 String             @id @default(uuid())
+  title              String
+  url                String?            @unique
+  userId             String
+  user               User               @relation(fields: [userId], references: [id])
+  isTranscribed      Boolean            @default(false)
+  transcripts        Transcript[]
+  summaries          Summary[]
+  createdAt          DateTime           @default(now())
+  Question           Question[]
+  isFavourite        Boolean            @default(false)
+  recordingBotStatus RecordingBotStatus @default(JOINING)
 }
 
 model Transcript {
