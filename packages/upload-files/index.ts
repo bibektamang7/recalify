@@ -17,7 +17,7 @@ export class StreamUploadFile {
 		const command = new CreateMultipartUploadCommand({
 			Bucket: R2_BUCKET,
 			Key: fileName,
-			ContentType: "video/mp4",
+			ContentType: "video/webm",
 		});
 		const { UploadId } = await s3.send(command);
 		this.uploadId = UploadId;
