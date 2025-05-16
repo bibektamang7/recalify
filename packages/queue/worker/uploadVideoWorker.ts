@@ -14,7 +14,7 @@ interface SegmentProps {
 }
 
 export const uploadVideoWorker = new Worker(
-	"video",
+	"uploadVideo",
 	async (job) => {
 		const jobData = job.data;
 		console.log(jobData);

@@ -1,7 +1,7 @@
 import { redisConnection } from "./redis";
 import { Queue } from "bullmq";
 
-export const uploadQueue = new Queue("upload", {
+export const uploadQueue = new Queue("uploadVideo", {
 	connection: redisConnection,
 	defaultJobOptions: {
 		attempts: 5,

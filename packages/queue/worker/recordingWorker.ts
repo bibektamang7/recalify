@@ -3,7 +3,7 @@ import { redisConnection } from "../lib/redis";
 import { recordingBot } from "bot-spawn";
 
 export const recordingWorker = new Worker(
-	"meetingBot",
+	"record",
 	async (job) => {
 		const { videoId, meetingUrl } = job.data;
 		try {
