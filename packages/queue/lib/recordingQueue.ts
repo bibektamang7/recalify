@@ -19,6 +19,14 @@ interface RecordMeetingProps {
 	meetingUrl: string;
 }
 
+recordQueue
+	.waitUntilReady()
+	.then(() => {
+		console.log("bullmq queue connected to redis");
+	})
+	.catch((error) => console.error("failed to connect queue to redis", error));
+
 export const recordMeeting = async (data: RecordMeetingProps) => {
+	console.log("yes yeat aayo");
 	await recordQueue.add("recordMeeting", data);
 };

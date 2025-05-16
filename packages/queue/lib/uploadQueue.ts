@@ -15,11 +15,19 @@ export const uploadQueue = new Queue("uploadVideo", {
 });
 
 interface UploadVidoeToS3 {
-	uploadData: ReadableStream<Uint8Array<ArrayBufferLike>>;
+	uploadData: Buffer<ArrayBuffer>;
 	uploadId: string;
 	uploadPart: number;
 }
 
 export const uploadVideoToS3 = async (data: UploadVidoeToS3) => {
 	await uploadQueue.add("videoUpload", data);
+};
+
+interface UploadStopProps {
+	uploadId: string;
+}
+
+export const recordStop = async (data: UploadStopProps) => {
+	await uploadQueue.add("uploadStop", data);
 };
