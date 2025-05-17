@@ -31,3 +31,12 @@ interface UploadStopProps {
 export const recordStop = async (data: UploadStopProps) => {
 	await uploadQueue.add("uploadStop", data);
 };
+
+interface UploadStartProps {
+	key: string;
+	uploadId: string;
+}
+
+export const recordStart = async (data: UploadStartProps) => {
+	await uploadQueue.add("uploadStart", data);
+};

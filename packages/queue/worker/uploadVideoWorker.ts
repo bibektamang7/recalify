@@ -1,52 +1,50 @@
 import { Worker } from "bullmq";
 import { redisConnection } from "../lib/redis";
 import { StreamUploadFile } from "upload-files";
-import { plainToInstance } from "class-transformer";
+// import { plainToInstance } from "class-transformer";
+
+let uploadStreamInstances = new Map<string, StreamUploadFile>();
 
 export const uploadVideoWorker = new Worker(
 	"uploadVideo",
 	async (job) => {
 		const jobData = job.data;
-		console.log(jobData);
-		if (job.name === "uploadStop") {
+		if (job.name === "uploadStart") {
+			const uploadStreamInstance = new StreamUploadFile();
+			await uploadStreamInstance.start(jobData.key);
+			uploadStreamInstances.set(jobData.uploadId, uploadStreamInstance);
+		} else if (job.name === "uploadStop") {
 			try {
-				console.log("stop upload worker");
-				const storedData = await redisConnection.get(job.data.uploadId);
-				if (!storedData) {
+				const uploadInstance = uploadStreamInstances.get(jobData.uploadId);
+				console.log(uploadInstance, "this is upload instance");
+				if (!uploadInstance) {
 					throw new Error("Failed to get upload streamer");
 				}
-				const streamUploaderInstance = plainToInstance(
-					StreamUploadFile,
-					JSON.parse(storedData)
-				);
-				await streamUploaderInstance.stop();
+				await uploadInstance.stop();
 			} catch (error) {
+				console.log("this is error ins stop", error);
 				throw new Error("Something went wrong while upload stop");
 			}
 			return;
 		}
 		try {
-			console.log("upload worker");
-			const storedData = await redisConnection.get(jobData.uploadId);
+			const uploadInstance = uploadStreamInstances.get(jobData.uploadId);
 
-			if (!storedData) {
+			if (!uploadInstance) {
 				throw new Error("Something went wrong while uploading video part");
 			}
-			const deserializedUploader = plainToInstance(
-				StreamUploadFile,
-				JSON.parse(storedData)
-			);
-			console.log("this is upload data", jobData.uploadData);
 			//TODO: QUEUE this
-			await deserializedUploader.upload(
-				jobData.uploadData,
+			console.log(jobData, "this is jobData");
+			const res = await uploadInstance.upload(
+				jobData.uploadData.data,
 				Number(jobData.uploadPart)
 			);
+			console.log("this is the res after upload", res);
 		} catch (error: any) {
 			throw new Error("Failed to upload video part");
 		}
 	},
-	{ connection: redisConnection, concurrency: 5 }
+	{ connection: redisConnection, concurrency: 1 }
 );
 
 uploadVideoWorker.on("ready", () => {
@@ -55,8 +53,12 @@ uploadVideoWorker.on("ready", () => {
 uploadVideoWorker.on("error", () => {
 	console.log("something went wrong in upload video worker");
 });
-uploadVideoWorker.on("failed", () => {
-	console.log("upload video worker is failed");
+uploadVideoWorker.on("failed", (err) => {
+	console.log(
+		"upload video worker is failed",
+		err?.failedReason,
+		err?.clearLogs()
+	);
 });
 uploadVideoWorker.on("completed", () => {
 	console.log("upload video worker is completed");
