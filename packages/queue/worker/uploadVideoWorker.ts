@@ -16,7 +16,7 @@ export const uploadVideoWorker = new Worker(
 		} else if (job.name === "uploadStop") {
 			try {
 				const uploadInstance = uploadStreamInstances.get(jobData.uploadId);
-				console.log(uploadInstance, "this is upload instance");
+				console.log(uploadInstance, "this is upload instance in the stop upload job");
 				if (!uploadInstance) {
 					throw new Error("Failed to get upload streamer");
 				}
@@ -34,12 +34,10 @@ export const uploadVideoWorker = new Worker(
 				throw new Error("Something went wrong while uploading video part");
 			}
 			//TODO: QUEUE this
-			console.log(jobData, "this is jobData");
-			const res = await uploadInstance.upload(
+			await uploadInstance.upload(
 				jobData.uploadData.data,
 				Number(jobData.uploadPart)
 			);
-			console.log("this is the res after upload", res);
 		} catch (error: any) {
 			throw new Error("Failed to upload video part");
 		}
@@ -53,11 +51,11 @@ uploadVideoWorker.on("ready", () => {
 uploadVideoWorker.on("error", () => {
 	console.log("something went wrong in upload video worker");
 });
-uploadVideoWorker.on("failed", (err) => {
+uploadVideoWorker.on("failed", async (err) => {
 	console.log(
 		"upload video worker is failed",
 		err?.failedReason,
-		err?.clearLogs()
+		await err?.clearLogs()
 	);
 });
 uploadVideoWorker.on("completed", () => {
