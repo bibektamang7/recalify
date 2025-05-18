@@ -1,5 +1,12 @@
 import { Builder, Browser, By, until, WebDriver } from "selenium-webdriver";
 import { Options } from "selenium-webdriver/chrome";
+import fs from "fs";
+
+function getRandomInt(min: number, max: number) {
+	min = Math.ceil(min);
+	max = Math.ceil(max);
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 export class MeetingRecorder {
 	private driver: WebDriver | null = null;
@@ -14,14 +21,24 @@ export class MeetingRecorder {
 		if (this.driver) return this.driver;
 		const options = new Options();
 
+		// options.excludeSwitches("enable-automation");
+		// options.addArguments("--headless=new");
+		options.addArguments("--enable-automation");
 		options.addArguments("--disable-blink-features=AutomationControlled");
 		options.addArguments("--use-fake-ui-for-media-stream");
-		options.addArguments("--window-size=1080,720");
-		options.addArguments("--auto-select-desktop-capture-source=[RECORD]");
+		options.addArguments("--window-size=1280,720");
 		options.addArguments("--auto-select-desktop-capture-source=[RECORD]");
 		options.addArguments("--enable-usermedia-screen-capturing");
 		options.addArguments('--auto-select-tab-capture-source-by-title="Meet"');
 		options.addArguments("--allow-running-insecure-content");
+		// options.addArguments("--start-maximized");
+		// options.addArguments("--disable-gpu");
+		options.addArguments("--disable-notifications");
+		options.addArguments("--mute-audio");
+		// options.addArguments("--no-sandbox");
+		options.setUserPreferences({
+			"media.navigator.permission.disabled": true,
+		});
 
 		let driver = await new Builder()
 			.forBrowser(Browser.CHROME)
@@ -36,63 +53,78 @@ export class MeetingRecorder {
 			await this.joinMeeting();
 			await new Promise((x) => setTimeout(x, 2000));
 			await this.startRecording();
+			console.log("here ens the browser");
 		} catch (error) {
 			console.log("something went wrong", error);
 			//TODO: Notify user something went wrong, couln't keep recording
 		}
 	}
+
 	private async joinMeeting(): Promise<void> {
 		const driver = this.driver;
 		if (!driver) {
 			process.exit(1);
 		}
-		try {
-			await driver.get(this.meetingUrl);
-			await driver.executeScript(
-				"Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
-			);
+		let retries = 1;
+		while (retries != 5) {
+			try {
+				const wait = (ms: number) =>
+					new Promise((resolve) => setTimeout(resolve, ms));
+				await driver.executeScript(
+					"Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+				);
+				await driver.get(this.meetingUrl);
+				await driver
+					.manage()
+					.window()
+					.setRect({ width: 1280, height: 720, x: 0, y: 0 });
 
-			const actions = driver.actions({ async: true });
-			const wait = (ms: number) =>
-				new Promise((resolve) => setTimeout(resolve, ms));
+				await driver.sleep(3000);
+				const actions = driver.actions({ bridge: true });
 
-			await driver.executeScript("window.scrollBy(0, 100)");
-			// await wait(2000);
-			const gotItButton = await driver.wait(
-				until.elementLocated(By.xpath("//span[text()='Got it']")),
-				10000
-			);
-			await gotItButton.click();
+				const gotItButton = await driver.wait(
+					until.elementLocated(By.xpath("//span[text()='Got it']")),
+					5000
+				);
+				await actions
+					.move({
+						origin: gotItButton,
+						x: getRandomInt(-5, 5),
+						y: getRandomInt(-5, 5),
+					})
+					.perform();
 
-			const InputText = await driver.wait(
-				until.elementLocated(By.xpath("//input[@placeholder='Your name']")),
-				10000
-			);
-			// await wait(2000);
-			await driver.wait(until.elementIsVisible(InputText), 5000);
-			await actions.move({ origin: InputText }).click().perform();
-			// await wait(2000);
-			await InputText.sendKeys("Bibek Tamang bot");
+				await gotItButton.click();
 
-			const joinButton = await driver.wait(
-				until.elementLocated(By.xpath("//span[text()='Ask to join']")),
-				10000
-			);
-			// await wait(5000);
-			await driver.wait(until.elementIsVisible(joinButton), 5000);
-			// await wait(1000 + Math.random() * 1000);
-			await actions.move({ origin: joinButton }).click().perform();
-			// const partcipants = await driver.wait(
-			// 	until.elementLocated(By.xpath("//span[text()='Contributors]")),
-			// 	10000
-			// );
-		} catch (error) {
-			console.log("failed to open browser and join", error);
+				const InputText = await driver.wait(
+					until.elementLocated(By.xpath("//input[@placeholder='Your name']")),
+					10000
+				);
+				await actions.move({ origin: InputText }).perform();
+
+				await InputText.click();
+				await InputText.sendKeys("Recalify Bot");
+
+				const joinButton = await driver.wait(
+					until.elementLocated(By.xpath("//span[text()='Ask to join']")),
+					10000
+				);
+				await driver.wait(until.elementIsVisible(joinButton), 10000);
+				await joinButton.click();
+				return;
+			} catch (error) {
+				if (retries === 4) {
+					//TODO: webhook to inform that failed to assign bot
+				}
+				await driver.takeScreenshot().then((data) => {
+					fs.writeFileSync("error.png", data, "base64");
+				});
+				retries++;
+			}
 		}
 	}
 	private async startRecording(): Promise<void> {
 		if (!this.driver) {
-			console.log("driver is not available");
 			return;
 		}
 		const backendURL = process.env.BACKEND_URL;
@@ -101,14 +133,14 @@ export class MeetingRecorder {
 
 		this.driver.executeScript(
 			function (backendURL: string, videoId: string) {
-				async function uploadStream(arrayBuffer: Blob, partNumber: number) {
+				async function uploadStream(blob: Blob, partNumber: number) {
 					await fetch(`${backendURL}/api/v1/upload-streamFile/upload`, {
 						method: "POST",
 						headers: {
 							"X-Upload-Id": videoId,
 							"x-part-number": partNumber.toString(),
 						},
-						body: arrayBuffer,
+						body: blob,
 					});
 				}
 
@@ -162,6 +194,7 @@ export class MeetingRecorder {
 						let count = 3;
 						while (count !== 0) {
 							const res = await fetchFC();
+							console.log(res, "this is result");
 							if (res) return resolve("Successfull");
 							count--;
 						}
@@ -196,6 +229,7 @@ export class MeetingRecorder {
 								},
 							}
 						);
+						console.log("this s response", response);
 						if (response.ok) return true;
 						return false;
 					} catch (error) {
@@ -207,14 +241,39 @@ export class MeetingRecorder {
 					return new Promise((resolve, reject) => {
 						let recorder = new MediaRecorder(stream);
 						let partNumber = 1;
+						let uploading = false;
+						let combinedBlob: Blob | null = null;
 						recorder.ondataavailable = async (event) => {
 							const participants = findNumberOfParticipants();
 							if (participants === 1) {
+								await uploadStream(
+									new Blob([combinedBlob!, event.data], {
+										type: event.data.type,
+									}),
+									partNumber
+								);
 								await successPromise(stopRecording);
 								recorder.stop();
 								return;
 							}
-							await uploadStream(event.data, partNumber);
+							const currentBlob = event.data;
+							combinedBlob = combinedBlob
+								? new Blob([combinedBlob, currentBlob], {
+										type: currentBlob.type,
+									})
+								: currentBlob;
+
+							const sizeInMb = combinedBlob.size / (1024 * 1024);
+							if (sizeInMb >= 5 && !uploading) {
+								uploading = true;
+								try {
+									await uploadStream(combinedBlob, partNumber++);
+								} catch (error) {
+									console.error("Upload failed", error);
+								} finally {
+									uploading = false;
+								}
+							}
 						};
 						recorder.onerror = (event) => {
 							reject();
@@ -222,11 +281,9 @@ export class MeetingRecorder {
 						recorder.onstop = () => {
 							resolve("Recorded successfully.");
 						};
-						recorder.start(2000);
+						recorder.start(30000);
 					});
 				}
-
-				console.log("before mediadevices");
 
 				window.navigator.mediaDevices
 					.getDisplayMedia({
@@ -277,9 +334,6 @@ export class MeetingRecorder {
 						});
 
 						await startRecording(combinedStream);
-						console.log("after start recording");
-
-						console.log("after download button click");
 
 						// Clean up streams
 						screenStream.getTracks().forEach((track) => track.stop());
@@ -292,15 +346,27 @@ export class MeetingRecorder {
 	}
 }
 
-(async () => {
-	const videoId = process.argv[2];
-	const meetingUrl = process.argv[3];
-	console.log(videoId, "this is vidoe id");
+// (async () => {
+// 	const videoId = process.argv[2];
+// 	const meetingUrl = process.argv[3];
+// 	console.log(videoId, "this is vidoe id");
+// 	console.log("this is backend url", process.env.BACKEND_URL);
+// 	if (!videoId || !meetingUrl) {
+// 		process.exit(1);
+// 	}
+// 	const meetingInstance = new MeetingRecorder(videoId, meetingUrl);
+// 	await meetingInstance.start();
+// })();
 
-	console.log(meetingUrl, "this is meeting url");
+async function recordingBot(videoId: string, meetingUrl: string) {
+	// const videoId = process.argv[2];
+	// const meetingUrl = process.argv[3];
+	console.log("this is backend url", process.env.BACKEND_URL);
 	if (!videoId || !meetingUrl) {
 		process.exit(1);
 	}
 	const meetingInstance = new MeetingRecorder(videoId, meetingUrl);
 	await meetingInstance.start();
-})();
+}
+
+export { recordingBot };
