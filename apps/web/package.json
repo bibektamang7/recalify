@@ -42,7 +42,8 @@
 		"tailwindcss": "^4.1.4",
 		"upload-files": "*",
 		"validation": "*",
-		"zod": "^3.24.3"
+		"zod": "^3.24.3",
+		"bot-spawn": "*"
 	},
 	"devDependencies": {
 		"@repo/eslint-config": "*",
