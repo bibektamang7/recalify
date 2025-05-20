@@ -3,39 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import VideoCard from "@/components/video-card";
 import { Plus, Clock, Calendar, Star, Database } from "lucide-react";
+import { prismaClient } from "db";
+import { getAuthUser } from "@/lib/verifyUser";
 
-const DashboardPage = () => {
-	const videos = [
-		{
-			id: "1",
-			title: "Weekly Team Standup",
-			date: "Today, 9:30 AM",
-			duration: "25 min",
-			thumbnail: "/placeholder.svg?height=120&width=200",
+const DashboardPage = async () => {
+	const user = await getAuthUser();
+	const videos = await prismaClient.video.findMany({
+		where: {
+			userId: user?.id,
 		},
-		{
-			id: "2",
-			title: "Product Planning",
-			date: "Yesterday, 2:00 PM",
-			duration: "45 min",
-			thumbnail: "/placeholder.svg?height=120&width=200",
-		},
-		{
-			id: "3",
-			title: "Client Presentation",
-			date: "May 15, 2023",
-			duration: "60 min",
-			thumbnail: "/placeholder.svg?height=120&width=200",
-		},
-		{
-			id: "4",
-			title: "Marketing Strategy",
-			date: "May 10, 2023",
-			duration: "40 min",
-			thumbnail: "/placeholder.svg?height=120&width=200",
-		},
-	];
-
+	});
+	
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
@@ -60,7 +38,7 @@ const DashboardPage = () => {
 						<Calendar className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">24</div>
+						<div className="text-2xl font-bold">{videos.length}</div>
 						<p className="text-xs text-muted-foreground">+5 from last month</p>
 					</CardContent>
 				</Card>
