@@ -59,7 +59,6 @@ export class StreamUploadFile {
 		if (!this.eTag || !this.key) {
 			return;
 		}
-		console.log("this is upload id in upload stop", this.uploadId);
 		const command = new CompleteMultipartUploadCommand({
 			Bucket: R2_BUCKET,
 			Key: this.key,

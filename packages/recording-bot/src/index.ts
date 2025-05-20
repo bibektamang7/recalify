@@ -51,7 +51,7 @@ export class MeetingRecorder {
 		try {
 			await this.getDriver();
 			await this.joinMeeting();
-			await new Promise((x) => setTimeout(x, 2000));
+			await new Promise((x) => setTimeout(x, 10000));
 			await this.startRecording();
 			console.log("here ens the browser");
 		} catch (error) {
@@ -254,6 +254,7 @@ export class MeetingRecorder {
 								);
 								await successPromise(stopRecording);
 								recorder.stop();
+								resolve("Record successfully");
 								return;
 							}
 							const currentBlob = event.data;
