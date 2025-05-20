@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { uploadVideoToS3 } from "queue";
 
 export async function POST(req: NextRequest) {
-	console.log("how many time it ran");
 	const uploadId = req.headers.get("x-upload-id");
 	const uploadPart = req.headers.get("x-part-number");
 	const arrayBuffer = await req.arrayBuffer();
