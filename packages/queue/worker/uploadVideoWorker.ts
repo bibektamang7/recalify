@@ -1,6 +1,7 @@
 import { Worker } from "bullmq";
 import { redisConnection } from "../lib/redis";
 import { StreamUploadFile } from "upload-files";
+import { addVideoTranscribe } from "../lib/transcribeQueue";
 // import { plainToInstance } from "class-transformer";
 
 let uploadStreamInstances = new Map<string, StreamUploadFile>();
@@ -16,11 +17,18 @@ export const uploadVideoWorker = new Worker(
 		} else if (job.name === "uploadStop") {
 			try {
 				const uploadInstance = uploadStreamInstances.get(jobData.uploadId);
-				console.log(uploadInstance, "this is upload instance in the stop upload job");
+				console.log(
+					uploadInstance,
+					"this is upload instance in the stop upload job"
+				);
 				if (!uploadInstance) {
 					throw new Error("Failed to get upload streamer");
 				}
 				await uploadInstance.stop();
+				await addVideoTranscribe({
+					videoId: jobData.uploadId,
+					videoUrl: `http://host.docker.internal:9000/recalify/${jobData.uploadId}.webm`,
+				});
 			} catch (error) {
 				console.log("this is error ins stop", error);
 				throw new Error("Something went wrong while upload stop");

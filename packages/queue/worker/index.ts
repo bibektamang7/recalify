@@ -1,4 +1,4 @@
 import "./recordingWorker"
 // import "./summaryWorker"
-// import "./transcribeWorker"
+import "./transcribeWorker"
 import "./uploadVideoWorker"

@@ -12,7 +12,7 @@ export const VideoRecordedSchema = z.object({
 
 export const VideoTranscribedSchema = z.object({
 	videoUrl: z.string(),
-	vidoeId: z.string(),
+	videoId: z.string(),
 });
 
 export const AskQuestionSchema = z.object({
