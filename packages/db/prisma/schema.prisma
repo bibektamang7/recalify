@@ -46,6 +46,7 @@ model Transcript {
   startTime Float
   endTime   Float
   // embedding Unsupported("vector(768)")
+  segments  Json
   embedding Float[] //For now
 }
 
