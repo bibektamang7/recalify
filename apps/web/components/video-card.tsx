@@ -1,9 +1,11 @@
+"use client";
 import Link from "next/link";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MyLoader from "./Loader";
 import { cn } from "@/lib/utils";
+import { useCallback, useState } from "react";
 
 type BotStatus = "RECORDING" | "RECORDED" | "FAILED" | "JOINING";
 
@@ -14,6 +16,7 @@ interface VideoCardProps {
 		createdAt: Date;
 		url: string | null;
 		recordingBotStatus: BotStatus;
+		isFavourite: boolean;
 	};
 }
 
@@ -25,6 +28,10 @@ const botStatusTheme: Record<BotStatus, string> = {
 };
 
 const VideoCard = ({ video }: VideoCardProps) => {
+	const [isFavourite, setIsFavourite] = useState<boolean>(video.isFavourite);
+	const handleFavouriteVideo = useCallback(() => {
+		setIsFavourite((prev) => !prev);
+	}, []);
 	return (
 		<Card className="overflow-hidden transition-all hover:shadow-md">
 			{video.recordingBotStatus === "RECORDED" ? (
@@ -44,9 +51,13 @@ const VideoCard = ({ video }: VideoCardProps) => {
 					<Button
 						variant="ghost"
 						size="icon"
-						className="h-8 w-8 absolute right-2 -top-5"
+						className="h-8 w-8 absolute right-2 -top-5 hover:cursor-pointer"
+						onClick={handleFavouriteVideo}
 					>
-						<Star className="h-4 w-4" />
+						<Star
+							className="h-4 w-4"
+							fill={isFavourite ? "yellow" : ""}
+						/>
 						<span className="sr-only">Favorite</span>
 					</Button>
 				</div>
