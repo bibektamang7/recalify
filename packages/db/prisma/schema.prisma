@@ -48,6 +48,8 @@ model Transcript {
   // embedding Unsupported("vector(768)")
   segments  Json
   embedding Float[] //For now
+
+  @@index([videoId])
 }
 
 enum SummaryType {
