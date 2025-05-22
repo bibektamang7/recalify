@@ -51,29 +51,44 @@ export const transcribeWorker = new Worker(
 		console.log("yeas pani aako xa hai no wowrry");
 		try {
 			const response = await axios.post(`${url}`, { url: jobData.videoUrl });
-			groupSegmentsToChunks(response.data.segments);
-			console.log(response, "this is respinse in worker video transcrib");
-			// await prismaClient.$transaction(
-			// 	response.data.segments.map(async (segment: SegmentProps) => {
-			// 		// const embeddingResponse = await axios.post(
-			// 		// 	"http://localhost:11434/api/embeddings",
-			// 		// 	{
-			// 		// 		model: "nomic-embed-text",
-			// 		// 		prompt: segment.text,
-			// 		// 	}
-			// 		// );
-			// 		// console.log(embeddingResponse, "this is in transcribe worker");
-			// 		// return await prismaClient.transcript.create({
-			// 		// 	data: {
-			// 		// 		text: segment.text,
-			// 		// 		startTime: segment.start,
-			// 		// 		endTime: segment.end,
-			// 		// 		videoId: jobData.videoId,
-			// 		// 		embedding: embeddingResponse.data.embedding,
-			// 		// 	},
-			// 		// });
-			// 	})
-			// );
+			const chuncks = groupSegmentsToChunks(response.data.segments);
+			const segmentsWithEmbeddings = await Promise.all(
+				chuncks.map(async (segment) => {
+					const embeddingResponse = await axios.post(
+						"http://localhost:11434/api/embeddings",
+						{
+							model: "nomic-embed-text",
+							prompt: segment.text,
+						}
+					);
+					return {
+						...segment,
+						embedding: embeddingResponse.data.embedding,
+					};
+				})
+			);
+			await prismaClient.$transaction(async (tx) => {
+				await Promise.all(
+					segmentsWithEmbeddings.map(async (segmentEmbeddings, index) => {
+						await tx.transcript.create({
+							data: {
+								text: segmentEmbeddings.text,
+								startTime: segmentEmbeddings.start,
+								endTime: segmentEmbeddings.end,
+								videoId: jobData.videoId,
+								embedding: segmentEmbeddings.embedding,
+								segments: segmentEmbeddings.segments,
+							},
+						});
+					})
+				);
+				await tx.video.update({
+					where: { id: jobData.videoId },
+					data: {
+						isTranscribed: true,
+					},
+				});
+			});
 		} catch (error: any) {
 			console.log(error);
 			throw new Error("Failed to transcribe");
