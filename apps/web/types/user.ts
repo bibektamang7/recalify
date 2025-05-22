@@ -5,6 +5,6 @@ export interface User {
 	name: string;
 	email: string;
 	profile: string;
-	videos: Video[];
-	createdAt: string;
+	videos?: Video[];
+	createdAt: Date;
 }
